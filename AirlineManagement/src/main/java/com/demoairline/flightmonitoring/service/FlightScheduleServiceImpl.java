@@ -14,6 +14,7 @@ import com.demoairline.flightmonitoring.dto.CancelScheduleDto;
 import com.demoairline.flightmonitoring.dto.ScheduleResponseDto;
 import com.demoairline.flightmonitoring.entity.FlightSchedule;
 import com.demoairline.flightmonitoring.entity.Runway;
+import com.demoairline.flightmonitoring.exception.FlightScheduleAlreadyDeletedException;
 import com.demoairline.flightmonitoring.exception.FlightScheduleNotFound;
 import com.demoairline.flightmonitoring.exception.RunwayNotFound;
 import com.demoairline.flightmonitoring.repository.FlightScheduleRepository;
@@ -30,12 +31,15 @@ public class FlightScheduleServiceImpl implements FlightScheduleService {
 	private RunwayRepository runwayRepository;
 
 	@Override
-	public CancelScheduleDto cancelScheduleByScheduleId(Long ScheduleId) throws FlightScheduleNotFound, RunwayNotFound {
+	public CancelScheduleDto cancelScheduleByScheduleId(Long ScheduleId) throws FlightScheduleNotFound, RunwayNotFound, FlightScheduleAlreadyDeletedException {
 		Optional<FlightSchedule> flightSchedule = flightScheduleRepository.findById(ScheduleId);
 		if (!flightSchedule.isPresent()) {
 			throw new FlightScheduleNotFound(Constant.FlightScheduleNotFoud);
 		}
-
+		if(flightSchedule.get().getScheduleStatus().equals("deleted"))
+		{
+			throw new FlightScheduleAlreadyDeletedException("Flight is Already Deleted");
+		}
 		flightSchedule.get().setScheduleStatus("deleted");
 		flightScheduleRepository.save(flightSchedule.get());
 		Optional<Runway> runway = runwayRepository.findById(flightSchedule.get().getRunwayID());
@@ -48,14 +52,16 @@ public class FlightScheduleServiceImpl implements FlightScheduleService {
 		cancelScheduleDto.setMeassge(Constant.CancelSchedule);
 		cancelScheduleDto.setStatusCode(Constant.CancelCode);
 		return cancelScheduleDto;
+	
 	}
 
 	@Override
 	public List<ScheduleResponseDto> getFlightScheduleByFlightCode(String flightCode) {
 		List<FlightSchedule> listFlightSchedue = flightScheduleRepository.findAllByFlightCode(flightCode);
+		
 		List<ScheduleResponseDto> scheduleResponseDtos = listFlightSchedue.stream().map(schedule -> {
 			ScheduleResponseDto scheduleResponseDto = new ScheduleResponseDto();
-			BeanUtils.copyProperties(listFlightSchedue, scheduleResponseDto);
+			BeanUtils.copyProperties(schedule, scheduleResponseDto);
 			return scheduleResponseDto;
 
 		}).collect(Collectors.toList());

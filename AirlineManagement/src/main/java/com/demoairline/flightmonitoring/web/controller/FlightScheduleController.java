@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.demoairline.flightmonitoring.dto.CancelScheduleDto;
 import com.demoairline.flightmonitoring.dto.ScheduleResponseDto;
+import com.demoairline.flightmonitoring.exception.FlightScheduleAlreadyDeletedException;
 import com.demoairline.flightmonitoring.exception.FlightScheduleNotFound;
 import com.demoairline.flightmonitoring.exception.RunwayNotFound;
 import com.demoairline.flightmonitoring.service.FlightScheduleService;
@@ -25,23 +26,22 @@ public class FlightScheduleController {
 	private FlightScheduleService flightScheduleService;
 
 	@DeleteMapping("/{scheduleId}")
-	public ResponseEntity<CancelScheduleDto> cancelSchedule(@PathVariable("scheduleId") Long scheduleId)throws RunwayNotFound
-			, FlightScheduleNotFound {
+	public ResponseEntity<CancelScheduleDto> cancelSchedule(@PathVariable("scheduleId") Long scheduleId)
+			throws RunwayNotFound, FlightScheduleNotFound,FlightScheduleAlreadyDeletedException {
 
-		CancelScheduleDto cancelScheduleDto = flightScheduleService.cancelScheduleByScheduleId(scheduleId);
-
-		return new ResponseEntity<>(cancelScheduleDto, HttpStatus.NO_CONTENT);
+		return new ResponseEntity<>(flightScheduleService.cancelScheduleByScheduleId(scheduleId),
+				HttpStatus.OK);
 
 	}
 
 	@GetMapping("/{scheduleId}")
-	public ResponseEntity<List<ScheduleResponseDto>> getScheduleByFlightCode(@RequestParam("flightCode") String flightCode)throws RunwayNotFound
-			, FlightScheduleNotFound {
+	public ResponseEntity<List<ScheduleResponseDto>> getScheduleByFlightCode(
+			@RequestParam("flightCode") String flightCode) throws RunwayNotFound, FlightScheduleNotFound {
 
-		List<ScheduleResponseDto>scheduleResponseDtos = flightScheduleService.getFlightScheduleByFlightCode(flightCode);
+		List<ScheduleResponseDto> scheduleResponseDtos = flightScheduleService
+				.getFlightScheduleByFlightCode(flightCode);
 
-		return new ResponseEntity<List<ScheduleResponseDto>>(scheduleResponseDtos,HttpStatus.OK);
+		return new ResponseEntity<>(scheduleResponseDtos, HttpStatus.OK);
 
-	
-}
+	}
 }

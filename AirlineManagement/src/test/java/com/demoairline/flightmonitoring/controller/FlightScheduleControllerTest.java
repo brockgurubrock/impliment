@@ -23,6 +23,7 @@ import com.demoairline.flightmonitoring.dto.ScheduleResponseDto;
 import com.demoairline.flightmonitoring.entity.Airport;
 import com.demoairline.flightmonitoring.entity.Flight;
 import com.demoairline.flightmonitoring.entity.FlightSchedule;
+import com.demoairline.flightmonitoring.exception.FlightScheduleAlreadyDeletedException;
 import com.demoairline.flightmonitoring.exception.FlightScheduleNotFound;
 import com.demoairline.flightmonitoring.exception.RunwayNotFound;
 import com.demoairline.flightmonitoring.service.FlightScheduleService;
@@ -36,7 +37,7 @@ public class FlightScheduleControllerTest {
 	private FlightScheduleController scheduleController;
 
 	@Test
-	public void tesCancelSchedule() throws FlightScheduleNotFound, RunwayNotFound {
+	public void tesCancelSchedule() throws FlightScheduleNotFound, RunwayNotFound, FlightScheduleAlreadyDeletedException {
 		FlightSchedule schedule = new FlightSchedule();
 		schedule.setScheduleId(1000L);
 		schedule.setRunwayID(1234L);

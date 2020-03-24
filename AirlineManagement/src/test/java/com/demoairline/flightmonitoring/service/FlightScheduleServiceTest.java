@@ -22,12 +22,13 @@ import com.demoairline.flightmonitoring.entity.Airport;
 import com.demoairline.flightmonitoring.entity.Flight;
 import com.demoairline.flightmonitoring.entity.FlightSchedule;
 import com.demoairline.flightmonitoring.entity.Runway;
+import com.demoairline.flightmonitoring.exception.FlightScheduleAlreadyDeletedException;
 import com.demoairline.flightmonitoring.exception.FlightScheduleNotFound;
 import com.demoairline.flightmonitoring.exception.RunwayNotFound;
 import com.demoairline.flightmonitoring.repository.FlightScheduleRepository;
 import com.demoairline.flightmonitoring.repository.RunwayRepository;
 
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class FlightScheduleServiceTest {
 	@Mock
 	private FlightScheduleRepository flightScheduleRepository;
@@ -37,7 +38,7 @@ public class FlightScheduleServiceTest {
 	private FlightScheduleServiceImpl scheduleServiceImpl;
 	
 @Test	
-public void testFlightScheduleCancel() throws FlightScheduleNotFound, RunwayNotFound
+public void testFlightScheduleCancel() throws FlightScheduleNotFound, RunwayNotFound, FlightScheduleAlreadyDeletedException
 {
 	FlightSchedule schedule=new FlightSchedule();
 	schedule.setScheduleId(1000L);
@@ -86,6 +87,58 @@ public void testFlightScheduleNotFound() throws FlightScheduleNotFound, RunwayNo
 
 	assertThrows(FlightScheduleNotFound.class,()->
 	{scheduleServiceImpl.cancelScheduleByScheduleId(10002L);}
+			
+			)	;
+}
+@Test	
+public void testFlightScheduleAlreadyDeletedException() throws FlightScheduleNotFound, RunwayNotFound
+{
+	FlightSchedule schedule=new FlightSchedule();
+	schedule.setScheduleId(1000L);
+	schedule.setRunwayID(1234L);
+	schedule.setScheduleStatus("deleted");
+	schedule.setScheduleType("Arrival");
+	Flight flight=new Flight();
+	flight.setFlightId(1L);
+	flight.setFlightName("abc");
+	Airline airline=new Airline();
+	airline.setAirlineId(1L);
+	schedule.setRunwayID(1L);
+	Runway runway=new Runway();
+	runway.setRunwayID(1L);
+	Airport airport=new Airport();
+	airport.setAirportId(1L);
+	Mockito.when(flightScheduleRepository.findById(1000L)).thenReturn(Optional.of(schedule));
+	Mockito.when(runwayRepository.findById(1L)).thenReturn(Optional.of(runway));
+
+	assertThrows(FlightScheduleAlreadyDeletedException.class,()->
+	{scheduleServiceImpl.cancelScheduleByScheduleId(1000L);}
+			
+			)	;
+}
+@Test	
+public void testRunwayNotFoundException() throws FlightScheduleNotFound, RunwayNotFound
+{
+	FlightSchedule schedule=new FlightSchedule();
+	schedule.setScheduleId(1000L);
+	
+	schedule.setScheduleStatus("available");
+	schedule.setScheduleType("Arrival");
+	Flight flight=new Flight();
+	flight.setFlightId(1L);
+	flight.setFlightName("abc");
+	Airline airline=new Airline();
+	airline.setAirlineId(1L);
+	schedule.setRunwayID(2L);
+	Runway runway=new Runway();
+	runway.setRunwayID(1L);
+	Airport airport=new Airport();
+	airport.setAirportId(1L);
+	Mockito.when(flightScheduleRepository.findById(1000L)).thenReturn(Optional.of(schedule));
+	Mockito.when(runwayRepository.findById(1L)).thenReturn(Optional.of(runway));
+
+	assertThrows(RunwayNotFound.class,()->
+	{scheduleServiceImpl.cancelScheduleByScheduleId(1000L);}
 			
 			)	;
 }
